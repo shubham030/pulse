@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" width="128" alt="Pulse logo">
+</p>
+
 # Pulse
 
 A remote-controlled ambient timer display for Android. Turn a spare phone or tablet into a beautiful countdown timer you control from your desktop via CLI, Raycast, menu bar app, or HTTP API.
