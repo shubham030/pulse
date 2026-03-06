@@ -8,6 +8,8 @@ class CountdownDisplay extends StatefulWidget {
   final Color ringColor;
   final Color ringBgColor;
   final bool isAmbient;
+  final bool isPaused;
+  final double? maxSize;
 
   const CountdownDisplay({
     super.key,
@@ -17,6 +19,8 @@ class CountdownDisplay extends StatefulWidget {
     required this.ringColor,
     required this.ringBgColor,
     required this.isAmbient,
+    this.isPaused = false,
+    this.maxSize,
   });
 
   @override
@@ -41,6 +45,16 @@ class _CountdownDisplayState extends State<CountdownDisplay>
   }
 
   @override
+  void didUpdateWidget(CountdownDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isPaused && _breathController.isAnimating) {
+      _breathController.stop();
+    } else if (!widget.isPaused && !_breathController.isAnimating) {
+      _breathController.repeat(reverse: true);
+    }
+  }
+
+  @override
   void dispose() {
     _breathController.dispose();
     super.dispose();
@@ -59,7 +73,12 @@ class _CountdownDisplayState extends State<CountdownDisplay>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size.width * 0.72;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
+    final baseSize = isTablet ? screenWidth * 0.4 : screenWidth * 0.72;
+    final size = widget.maxSize != null
+        ? math.min(baseSize, widget.maxSize!)
+        : baseSize;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -69,7 +88,7 @@ class _CountdownDisplayState extends State<CountdownDisplay>
             widget.label.toUpperCase(),
             style: TextStyle(
               color: widget.ringColor.withValues(alpha: 0.6),
-              fontSize: 11,
+              fontSize: isTablet ? 13 : 11,
               letterSpacing: 5,
               fontWeight: FontWeight.w500,
             ),
@@ -81,7 +100,9 @@ class _CountdownDisplayState extends State<CountdownDisplay>
         AnimatedBuilder(
           animation: _breathAnim,
           builder: (context, child) {
-            final scale = widget.isAmbient ? _breathAnim.value : 1.0;
+            final scale = widget.isAmbient && !widget.isPaused
+                ? _breathAnim.value
+                : 1.0;
             return Transform.scale(
               scale: scale,
               child: SizedBox(
@@ -98,7 +119,9 @@ class _CountdownDisplayState extends State<CountdownDisplay>
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: widget.ringColor.withValues(alpha: 0.12),
+                                color: widget.ringColor.withValues(
+                                  alpha: widget.isPaused ? 0.06 : 0.12,
+                                ),
                                 blurRadius: 60,
                                 spreadRadius: 8,
                               ),
@@ -113,14 +136,16 @@ class _CountdownDisplayState extends State<CountdownDisplay>
                         painter: _RingPainter(
                           progress: _progress,
                           trackColor: widget.ringBgColor,
-                          progressColor: widget.ringColor,
+                          progressColor: widget.isPaused
+                              ? widget.ringColor.withValues(alpha: 0.4)
+                              : widget.ringColor,
                           isAmbient: widget.isAmbient,
                           strokeWidth: widget.isAmbient ? 3.0 : 5.0,
                         ),
                       ),
                     ),
 
-                    // Time + label
+                    // Time display
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -129,17 +154,32 @@ class _CountdownDisplayState extends State<CountdownDisplay>
                           style: TextStyle(
                             fontSize: size * 0.22,
                             fontWeight: FontWeight.w100,
-                            color: Colors.white,
+                            color: widget.isPaused
+                                ? Colors.white.withValues(alpha: 0.5)
+                                : Colors.white,
                             letterSpacing: widget.isAmbient ? 6 : 3,
-                            fontFeatures: const [FontFeature.tabularFigures()],
+                            fontFeatures: const [
+                              FontFeature.tabularFigures()
+                            ],
                           ),
                         ),
                         const SizedBox(height: 6),
-                        _ProgressBar(
-                          progress: _progress,
-                          color: widget.ringColor,
-                          isAmbient: widget.isAmbient,
-                        ),
+                        if (widget.isPaused)
+                          Text(
+                            'PAUSED',
+                            style: TextStyle(
+                              color: widget.ringColor.withValues(alpha: 0.5),
+                              fontSize: 11,
+                              letterSpacing: 4,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )
+                        else
+                          _ProgressBar(
+                            progress: _progress,
+                            color: widget.ringColor,
+                            isAmbient: widget.isAmbient,
+                          ),
                       ],
                     ),
                   ],
@@ -153,7 +193,6 @@ class _CountdownDisplayState extends State<CountdownDisplay>
   }
 }
 
-/// A thin linear progress bar shown below the time.
 class _ProgressBar extends StatelessWidget {
   final double progress;
   final Color color;
@@ -184,7 +223,6 @@ class _ProgressBar extends StatelessWidget {
   }
 }
 
-/// CustomPainter for the arc ring — supports gradient stroke in ambient mode.
 class _RingPainter extends CustomPainter {
   final double progress;
   final Color trackColor;
@@ -243,5 +281,7 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RingPainter old) =>
-      old.progress != progress || old.isAmbient != isAmbient;
+      old.progress != progress ||
+      old.isAmbient != isAmbient ||
+      old.progressColor != progressColor;
 }

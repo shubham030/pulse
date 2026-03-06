@@ -1,25 +1,33 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"net/http"
 
+	"github.com/shubham030/pulse-cli/internal/client"
 	"github.com/spf13/cobra"
 )
 
 var themeHost string
 
+var validThemes = []string{"dark", "ambient", "warm", "forest", "ocean", "rose"}
+
 var themeCmd = &cobra.Command{
-	Use:       "theme [dark|ambient]",
+	Use:       "theme <name>",
 	Short:     "Set the display theme",
 	Args:      cobra.ExactArgs(1),
-	ValidArgs: []string{"dark", "ambient"},
+	ValidArgs: validThemes,
+	Example:   "  pulse theme ambient\n  pulse theme forest",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		theme := args[0]
-		if theme != "dark" && theme != "ambient" {
-			return fmt.Errorf("theme must be 'dark' or 'ambient'")
+		valid := false
+		for _, t := range validThemes {
+			if t == theme {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return fmt.Errorf("unknown theme %q; valid themes: %v", theme, validThemes)
 		}
 
 		host, port, err := resolveHost(themeHost)
@@ -27,18 +35,12 @@ var themeCmd = &cobra.Command{
 			return err
 		}
 
-		body, _ := json.Marshal(map[string]string{"theme": theme})
-		resp, err := http.Post(
-			fmt.Sprintf("http://%s:%d/settings", host, port),
-			"application/json",
-			bytes.NewReader(body),
-		)
-		if err != nil {
-			return fmt.Errorf("request failed: %w", err)
+		c := client.New(host, port)
+		if err := c.SetTheme(theme); err != nil {
+			return fmt.Errorf("failed to set theme: %w", err)
 		}
-		defer resp.Body.Close()
 
-		fmt.Printf("Theme set to '%s' on %s:%d\n", theme, host, port)
+		fmt.Printf("  Theme set to '%s' on %s:%d\n", theme, host, port)
 		return nil
 	},
 }

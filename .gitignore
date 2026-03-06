@@ -8,6 +8,10 @@ app/.packages
 # Go
 cli/pulse
 
+# Raycast
+raycast/node_modules/
+raycast/dist/
+
 # General
 .DS_Store
 *.log

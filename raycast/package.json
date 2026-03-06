@@ -1,0 +1,87 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "pulse-timer",
+  "title": "Pulse Timer",
+  "description": "Control the Pulse remote timer display on your phone",
+  "icon": "extension-icon.png",
+  "author": "shubham030",
+  "categories": [
+    "Productivity"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "start-timer",
+      "title": "Start Timer",
+      "description": "Start a timer on the Pulse display",
+      "mode": "view"
+    },
+    {
+      "name": "stop-timer",
+      "title": "Stop Timer",
+      "description": "Stop the running timer",
+      "mode": "no-view"
+    },
+    {
+      "name": "timer-status",
+      "title": "Timer Status",
+      "description": "Show current timer status",
+      "mode": "no-view"
+    },
+    {
+      "name": "pause-timer",
+      "title": "Pause Timer",
+      "description": "Pause the running timer",
+      "mode": "no-view"
+    },
+    {
+      "name": "resume-timer",
+      "title": "Resume Timer",
+      "description": "Resume a paused timer",
+      "mode": "no-view"
+    },
+    {
+      "name": "start-pomodoro",
+      "title": "Start Pomodoro",
+      "description": "Start a pomodoro session",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "host",
+      "title": "Phone IP Address",
+      "description": "IP address of your Android phone running Pulse",
+      "type": "textfield",
+      "required": true,
+      "placeholder": "192.168.0.106"
+    },
+    {
+      "name": "port",
+      "title": "Port",
+      "description": "Port the Pulse server listens on",
+      "type": "textfield",
+      "required": false,
+      "default": "7878",
+      "placeholder": "7878"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.93.1"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/node": "^22.13.9",
+    "@types/react": "^19.0.10",
+    "eslint": "^8.57.1",
+    "prettier": "^3.5.2",
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}

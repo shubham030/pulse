@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/timer_provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/device_discovery.dart';
 import '../theme/app_themes.dart';
 import '../app.dart';
 import '../widgets/timer_input_sheet.dart';
@@ -53,6 +54,16 @@ class _IdleScreenState extends ConsumerState<IdleScreen> {
           label: label,
           sound: sound,
         );
+    _syncToDevices({'action': 'start', 'duration': minutes * 60, 'label': label, 'sound': sound});
+    navigatorKey.currentState?.pushReplacementNamed('/timer');
+  }
+
+  void _startPomodoro() {
+    ref.read(timerProvider.notifier).startPomodoro(const PomodoroConfig());
+    _syncToDevices({
+      'action': 'pomodoro',
+      '_path': '/pomodoro',
+    });
     navigatorKey.currentState?.pushReplacementNamed('/timer');
   }
 
@@ -69,9 +80,18 @@ class _IdleScreenState extends ConsumerState<IdleScreen> {
     Navigator.of(context).pushNamed('/settings');
   }
 
+  void _syncToDevices(Map<String, dynamic> command) {
+    final settings = ref.read(settingsProvider);
+    if (settings.syncToDevices) {
+      ref.read(deviceDiscoveryProvider.notifier).broadcastToDevices({...command});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final pulse = context.pulse;
+    final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
+    final devices = ref.watch(deviceDiscoveryProvider);
 
     return Scaffold(
       body: Container(
@@ -94,6 +114,15 @@ class _IdleScreenState extends ConsumerState<IdleScreen> {
                       ),
                     ),
                     const Spacer(),
+                    if (devices.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Icon(
+                          Icons.devices,
+                          color: pulse.accentColor.withValues(alpha: 0.5),
+                          size: 18,
+                        ),
+                      ),
                     IconButton(
                       icon: const Icon(Icons.tune, color: Colors.white38),
                       onPressed: _openSettings,
@@ -106,50 +135,84 @@ class _IdleScreenState extends ConsumerState<IdleScreen> {
 
               // Presets grid
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: GridView.count(
-                  shrinkWrap: true,
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.5,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: _presets
-                      .map((p) => _PresetCard(
-                            label: p.label,
-                            minutes: p.minutes,
-                            accentColor: pulse.accentColor,
-                            isAmbient: pulse.isAmbient,
-                            onTap: () => _startPreset(p.label, p.minutes),
-                          ))
-                      .toList(),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 80 : 24,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: isTablet ? 4 : 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: isTablet ? 1.3 : 1.5,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: _presets
+                        .map((p) => _PresetCard(
+                              label: p.label,
+                              minutes: p.minutes,
+                              accentColor: pulse.accentColor,
+                              isAmbient: pulse.isAmbient,
+                              onTap: () =>
+                                  _startPreset(p.label, p.minutes),
+                            ))
+                        .toList(),
+                  ),
                 ),
               ),
 
               const SizedBox(height: 16),
 
-              // Custom button
+              // Action buttons row
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: OutlinedButton.icon(
-                  onPressed: _openCustomSheet,
-                  icon: Icon(Icons.add, color: pulse.accentColor, size: 18),
-                  label: Text(
-                    'Custom',
-                    style: TextStyle(color: pulse.accentColor, letterSpacing: 1),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 52),
-                    side: BorderSide(color: pulse.accentColor.withValues(alpha: 0.4)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 80 : 24,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _startPomodoro,
+                          icon: Icon(Icons.timer, color: pulse.accentColor, size: 18),
+                          label: Text(
+                            'Pomodoro',
+                            style: TextStyle(color: pulse.accentColor, letterSpacing: 1),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, 52),
+                            side: BorderSide(color: pulse.accentColor.withValues(alpha: 0.4)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _openCustomSheet,
+                          icon: Icon(Icons.add, color: pulse.accentColor, size: 18),
+                          label: Text(
+                            'Custom',
+                            style: TextStyle(color: pulse.accentColor, letterSpacing: 1),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, 52),
+                            side: BorderSide(color: pulse.accentColor.withValues(alpha: 0.4)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
               const Spacer(),
 
-              // Status
+              // Status bar
               if (_ip.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 24),
@@ -181,6 +244,17 @@ class _IdleScreenState extends ConsumerState<IdleScreen> {
                           letterSpacing: 1,
                         ),
                       ),
+                      if (devices.isNotEmpty) ...[
+                        const SizedBox(width: 16),
+                        Text(
+                          '${devices.length} device${devices.length > 1 ? 's' : ''}',
+                          style: TextStyle(
+                            color: pulse.accentColor.withValues(alpha: 0.4),
+                            fontSize: 12,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

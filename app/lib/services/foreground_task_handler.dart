@@ -14,9 +14,14 @@ class PulseTaskHandler extends TaskHandler {
     debugPrint('PulseTaskHandler.onStart called');
     try {
       final router = buildRouter();
+      final wsHandler = buildWsHandler();
+
       final handler = Pipeline()
           .addMiddleware(logRequests())
-          .addHandler(router.call);
+          .addHandler((Request request) {
+        if (request.url.path == 'ws') return wsHandler(request);
+        return router.call(request);
+      });
 
       _server = await shelf_io.serve(handler, InternetAddress.anyIPv4, 7878);
       debugPrint('HTTP server started on port 7878');
@@ -33,7 +38,31 @@ class PulseTaskHandler extends TaskHandler {
   }
 
   @override
-  void onRepeatEvent(DateTime timestamp) {}
+  void onRepeatEvent(DateTime timestamp) {
+    // Update notification with current timer info
+    if (serviceState.running) {
+      final m = serviceState.remaining ~/ 60;
+      final s = serviceState.remaining % 60;
+      final time =
+          '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+      final label =
+          serviceState.label.isNotEmpty ? '${serviceState.label} — ' : '';
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Pulse',
+        notificationText: '$label$time remaining',
+      );
+    } else if (serviceState.paused) {
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Pulse',
+        notificationText: 'Timer paused',
+      );
+    } else {
+      FlutterForegroundTask.updateService(
+        notificationTitle: 'Pulse',
+        notificationText: 'Listening on port 7878',
+      );
+    }
+  }
 
   @override
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
@@ -49,6 +78,7 @@ class PulseTaskHandler extends TaskHandler {
       final action = data['action'] as String?;
       if (action == 'statusUpdate') {
         serviceState.update(data);
+        broadcastWsState();
       }
     }
   }

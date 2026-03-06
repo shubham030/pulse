@@ -10,6 +10,10 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "pulse",
 	Short: "Control the Pulse remote timer display",
+	Long: `Pulse CLI — control your Pulse timer display from the terminal.
+
+Auto-discovers devices via mDNS, or use --host to specify manually.
+Configuration cached at ~/.config/pulse/config.json.`,
 }
 
 func Execute() {
@@ -22,7 +26,12 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(stopCmd)
+	rootCmd.AddCommand(pauseCmd)
+	rootCmd.AddCommand(resumeCmd)
+	rootCmd.AddCommand(skipCmd)
 	rootCmd.AddCommand(statusCmd)
-	rootCmd.AddCommand(discoverCmd)
+	rootCmd.AddCommand(queueCmd)
+	rootCmd.AddCommand(pomodoroCmd)
 	rootCmd.AddCommand(themeCmd)
+	rootCmd.AddCommand(discoverCmd)
 }

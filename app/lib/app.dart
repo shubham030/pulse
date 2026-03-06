@@ -3,6 +3,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/settings_provider.dart';
 import 'services/foreground_service.dart';
+import 'services/device_discovery.dart';
 import 'screens/idle_screen.dart';
 import 'screens/timer_screen.dart';
 import 'screens/settings_screen.dart';
@@ -16,7 +17,7 @@ class PulseApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
-    final theme = settings.theme == AppTheme.ambient ? ambientTheme : darkTheme;
+    final theme = themeMap[settings.theme.name] ?? darkTheme;
 
     return MaterialApp(
       title: 'Pulse',
@@ -32,14 +33,14 @@ class PulseApp extends ConsumerWidget {
   }
 }
 
-class _AppRoot extends StatefulWidget {
+class _AppRoot extends ConsumerStatefulWidget {
   const _AppRoot();
 
   @override
-  State<_AppRoot> createState() => _AppRootState();
+  ConsumerState<_AppRoot> createState() => _AppRootState();
 }
 
-class _AppRootState extends State<_AppRoot> {
+class _AppRootState extends ConsumerState<_AppRoot> {
   @override
   void initState() {
     super.initState();
@@ -56,6 +57,9 @@ class _AppRootState extends State<_AppRoot> {
     }
 
     await startForegroundTask();
+
+    // Start device discovery for multi-device sync
+    ref.read(deviceDiscoveryProvider.notifier).startDiscovery();
   }
 
   @override
