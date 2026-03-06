@@ -2,6 +2,7 @@ package mdns
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/grandcat/zeroconf"
@@ -39,6 +40,10 @@ func Discover(ctx context.Context, timeout time.Duration) ([]Device, error) {
 			host := entry.HostName
 			if len(entry.AddrIPv4) > 0 {
 				host = entry.AddrIPv4[0].String()
+			}
+			// Strip zone ID suffix (e.g. %en0) that some systems append
+			if i := strings.Index(host, "%"); i != -1 {
+				host = host[:i]
 			}
 			devices = append(devices, Device{
 				Name: entry.Instance,
