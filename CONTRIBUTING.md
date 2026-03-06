@@ -9,6 +9,7 @@ Thanks for your interest in contributing! Pulse is a simple project and we want 
    - **Flutter app** — `cd app && flutter pub get && flutter run`
    - **CLI** — `cd cli && go build -o pulse .`
    - **Raycast extension** — `cd raycast && npm install && npm run dev`
+   - **Menu bar app** — `cd menubar && swift build`
 
 ## Project Structure
 
@@ -24,6 +25,8 @@ pulse/
   cli/              Go CLI tool
     cmd/            Cobra commands
     internal/       Client, mDNS discovery, config
+  menubar/          macOS menu bar app (Swift)
+    Sources/        App delegate, WebSocket client, Bonjour discovery
   raycast/          Raycast extension (TypeScript)
     src/            Commands and API client
 ```

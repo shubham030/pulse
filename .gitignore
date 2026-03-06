@@ -12,6 +12,9 @@ cli/pulse
 raycast/node_modules/
 raycast/dist/
 
+# Swift
+menubar/.build/
+
 # General
 .DS_Store
 *.log

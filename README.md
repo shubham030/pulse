@@ -1,6 +1,6 @@
 # Pulse
 
-A remote-controlled ambient timer display for Android. Turn a spare phone or tablet into a beautiful countdown timer you control from your desktop via CLI, Raycast, or HTTP API.
+A remote-controlled ambient timer display for Android. Turn a spare phone or tablet into a beautiful countdown timer you control from your desktop via CLI, Raycast, menu bar app, or HTTP API.
 
 ## Features
 
@@ -12,17 +12,19 @@ A remote-controlled ambient timer display for Android. Turn a spare phone or tab
 - **Remote control** — HTTP REST API + WebSocket for real-time updates
 - **Multi-device sync** — auto-discovers other Pulse devices on your network via mDNS
 - **Tablet-responsive** — adaptive layout with queue sidebar on larger screens
+- **macOS menu bar** — live countdown by the notch with controls dropdown
 - **Foreground service** — keeps running with screen-on, vibration alerts on completion
 
 ## Architecture
 
 ```
-┌──────────────┐     HTTP/WS      ┌──────────────┐
-│   CLI / RC   │ ──────────────── │  Pulse App   │
-│  (desktop)   │    :7878         │  (Android)   │
+┌──────────────┐                  ┌──────────────┐
+│   CLI / RC   │     HTTP/WS      │  Pulse App   │
+│  Menu Bar    │ ──────────────── │  (Android)   │
+│  (desktop)   │    :7878         │              │
 └──────────────┘                  └──────────────┘
                                         │
-                                   mDNS discovery
+                                   mDNS / Bonjour
                                    _pulse._tcp
 ```
 
@@ -90,6 +92,38 @@ pulse theme ambient       # dark | ambient | warm | forest | ocean | rose
 # Network
 pulse discover            # find Pulse devices on the network
 ```
+
+### macOS Menu Bar App
+
+Requires macOS 13+ and Swift 5.9+.
+
+```bash
+cd menubar
+swift build -c release
+
+# Copy to a convenient location
+cp .build/release/PulseMenuBar /usr/local/bin/pulse-menubar
+```
+
+Run it:
+
+```bash
+pulse-menubar
+```
+
+The app sits by the notch and auto-discovers your Pulse device via Bonjour. It shows:
+
+- **Running**: `⏱ 23:45` with live countdown
+- **Paused**: `⏸ 23:45`
+- **Idle**: `⏱`
+
+Click the icon for a dropdown with:
+- Timer status, progress bar, pomodoro info
+- Pause / Resume / Stop / Skip controls
+- Quick-start presets and Pomodoro
+- Theme switcher
+
+To launch on login, add `pulse-menubar` to System Settings > General > Login Items.
 
 ### Raycast Extension
 
