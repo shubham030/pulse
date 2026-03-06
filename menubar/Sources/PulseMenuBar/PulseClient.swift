@@ -47,7 +47,11 @@ class PulseClient {
     // MARK: - WebSocket
 
     func connect() {
-        guard let url = URL(string: wsURL) else { return }
+        guard let url = URL(string: wsURL) else {
+            print("[ws] Invalid URL: \(wsURL)")
+            return
+        }
+        print("[ws] Connecting to \(wsURL)...")
         wsTask = session.webSocketTask(with: url)
         wsTask?.resume()
         receiveMessage()
@@ -76,7 +80,8 @@ class PulseClient {
                 }
                 self?.receiveMessage()
 
-            case .failure:
+            case .failure(let error):
+                print("[ws] Disconnected: \(error)")
                 self?.onDisconnect?()
                 self?.scheduleReconnect()
             }

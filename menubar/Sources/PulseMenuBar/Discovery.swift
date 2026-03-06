@@ -18,6 +18,7 @@ class BonjourDiscovery {
         browser?.browseResultsChangedHandler = { [weak self] results, _ in
             for result in results {
                 if case .service(let name, _, _, _) = result.endpoint {
+                    print("[discovery] Found service: \(name)")
                     self?.resolve(result: result, name: name)
                 }
             }
@@ -25,8 +26,10 @@ class BonjourDiscovery {
 
         browser?.stateUpdateHandler = { state in
             switch state {
+            case .ready:
+                print("[discovery] Browsing for _pulse._tcp...")
             case .failed(let error):
-                print("Bonjour discovery failed: \(error)")
+                print("[discovery] Failed: \(error)")
             default:
                 break
             }
@@ -46,7 +49,7 @@ class BonjourDiscovery {
             if case .ready = state {
                 if let endpoint = connection.currentPath?.remoteEndpoint,
                    case .hostPort(let host, let port) = endpoint {
-                    let hostStr: String
+                    var hostStr: String
                     switch host {
                     case .ipv4(let addr):
                         hostStr = "\(addr)"
@@ -57,6 +60,11 @@ class BonjourDiscovery {
                     @unknown default:
                         hostStr = "\(host)"
                     }
+                    // Strip zone ID suffix (e.g. %en0)
+                    if let idx = hostStr.firstIndex(of: "%") {
+                        hostStr = String(hostStr[..<idx])
+                    }
+                    print("[discovery] Resolved: \(hostStr):\(port.rawValue)")
                     DispatchQueue.main.async {
                         self?.onFound(hostStr, Int(port.rawValue))
                     }

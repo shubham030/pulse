@@ -16,6 +16,7 @@ class PulseAppDelegate: NSObject, NSApplicationDelegate {
     private var client: PulseClient?
     private var discovery: BonjourDiscovery!
     private var currentStatus = TimerStatus()
+    private var previousStatus = ""
     private var isConnected = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -44,9 +45,29 @@ class PulseAppDelegate: NSObject, NSApplicationDelegate {
 
         client?.onStatusUpdate = { [weak self] status in
             DispatchQueue.main.async {
+                let prev = self?.previousStatus ?? "idle"
+                self?.previousStatus = status.status
                 self?.currentStatus = status
                 self?.isConnected = true
                 self?.updateDisplay()
+
+                // Notify on completion or pause
+                if status.status == "completed" && prev != "completed" {
+                    self?.sendNotification(
+                        title: "Timer Complete",
+                        body: status.label.isEmpty ? "Your timer has finished." : "\(status.label) is done."
+                    )
+                } else if status.status == "paused" && prev == "running" {
+                    self?.sendNotification(
+                        title: "Timer Paused",
+                        body: "\(formatTime(status.remaining)) remaining"
+                    )
+                } else if status.status == "running" && prev == "idle" {
+                    self?.sendNotification(
+                        title: status.label.isEmpty ? "Timer Started" : status.label,
+                        body: "\(formatTime(status.total)) on the clock"
+                    )
+                }
             }
         }
 
@@ -238,6 +259,18 @@ class PulseAppDelegate: NSObject, NSApplicationDelegate {
     @objc func setTheme(_ sender: NSMenuItem) {
         guard let theme = sender.representedObject as? String else { return }
         client?.post("/settings", body: ["theme": theme])
+    }
+
+    // MARK: - Notifications
+
+    func sendNotification(title: String, body: String) {
+        let script = """
+            display notification "\(body)" with title "\(title)" sound name "Glass"
+            """
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        process.arguments = ["-e", script]
+        try? process.run()
     }
 
     // MARK: - Config
