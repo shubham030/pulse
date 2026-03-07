@@ -15,6 +15,10 @@ raycast/dist/
 # Swift
 menubar/.build/
 
+# Signing
+app/android/key.properties
+app/android/app/*.jks
+
 # General
 .DS_Store
 *.log
