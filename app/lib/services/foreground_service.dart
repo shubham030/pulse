@@ -33,6 +33,9 @@ Future<void> startForegroundTask() async {
       serviceTypes: [ForegroundServiceTypes.dataSync],
       notificationTitle: 'Pulse',
       notificationText: 'Listening on port 7878',
+      notificationIcon: const NotificationIcon(
+        metaDataName: 'com.pulse.notification_icon',
+      ),
       callback: startCallback,
     );
     if (result is ServiceRequestFailure) {

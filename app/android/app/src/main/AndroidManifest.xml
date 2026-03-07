@@ -40,6 +40,9 @@
 <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.pulse.notification_icon"
+            android:resource="@drawable/ic_notification" />
     </application>
     <queries>
         <intent>
