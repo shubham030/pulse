@@ -57,13 +57,21 @@ flutter run
 Requires [Go 1.25+](https://go.dev/dl/).
 
 ```bash
+go install github.com/shubham030/pulse/cli@latest
+```
+
+The binary will be installed as `cli` in your `$GOPATH/bin`. To rename it:
+
+```bash
+mv $(go env GOPATH)/bin/cli $(go env GOPATH)/bin/pulse
+```
+
+Or build from source:
+
+```bash
 cd cli
 go build -o pulse .
-
-# Move to your PATH
 mv pulse ~/.local/bin/
-# or
-sudo mv pulse /usr/local/bin/
 ```
 
 The CLI auto-discovers your Pulse device via mDNS. On first use it caches the device address in `~/.config/pulse/config.json`. You can also specify `--host` manually.

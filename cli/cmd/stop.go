@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/shubham030/pulse-cli/internal/client"
+	"github.com/shubham030/pulse/cli/internal/client"
 )
 
 var stopHost string

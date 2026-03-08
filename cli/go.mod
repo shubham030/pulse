@@ -1,4 +1,4 @@
-module github.com/shubham030/pulse-cli
+module github.com/shubham030/pulse/cli
 
 go 1.25.0
 

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/shubham030/pulse-cli/internal/client"
-	"github.com/shubham030/pulse-cli/internal/config"
-	"github.com/shubham030/pulse-cli/internal/mdns"
+	"github.com/shubham030/pulse/cli/internal/client"
+	"github.com/shubham030/pulse/cli/internal/config"
+	"github.com/shubham030/pulse/cli/internal/mdns"
 )
 
 var (
