@@ -11,6 +11,7 @@ cli/pulse
 # Raycast
 raycast/node_modules/
 raycast/dist/
+raycast/*.js
 
 # Swift
 menubar/.build/
