@@ -1,4 +1,4 @@
-package dev.pulse.app
+package com.enraio.pulse
 
 import android.app.KeyguardManager
 import android.os.Build
