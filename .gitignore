@@ -23,3 +23,7 @@ app/android/app/*.jks
 # General
 .DS_Store
 *.log
+
+# Keystore material — never commit
+secrets/
+key.properties
